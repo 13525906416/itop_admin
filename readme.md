@@ -1,4 +1,4 @@
-# yb_admin后台管理系统后端
+# itop_admin后台管理系统后端
 
 ## v1 环境准备
 * JDK 21

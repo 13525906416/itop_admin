@@ -1,10 +1,13 @@
 package org.example.itop_admin.config;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.jdbc.datasource.embedded.EmbeddedDatabaseBuilder;
 import org.springframework.jdbc.datasource.embedded.EmbeddedDatabaseType;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.ProviderManager;
+import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -36,36 +39,16 @@ import javax.sql.DataSource;
 @Configuration
 public class SecurityConfig {
 
-    //使用内嵌的H2数据库，用框架提供的ddl脚本创建
-    @Bean
-    public DataSource dataSource() {
-        return new EmbeddedDatabaseBuilder()
-                .setType(EmbeddedDatabaseType.H2)
-                .addScript(JdbcDaoImpl.DEFAULT_USER_SCHEMA_DDL_LOCATION)
-                .build();
-    }
-
-
-    //5.4版本以后基于jdbc方式实现
-    @Bean
-    public UserDetailsManager users(DataSource dataSource) {
-        UserDetails user = User.withUsername("user")
-                .password("password")
-                .roles("USER")
-                .build();
-        UserDetails admin = User.withUsername("admin")
-                .password("password")
-                .roles("ADMIN")
-                .build();
-        JdbcUserDetailsManager users = new JdbcUserDetailsManager(dataSource);
-        users.createUser(user);
-        users.createUser(admin);
-        return users;
-    }
+    @Autowired
+    private MyUserDetailsService userDetailsService;
 
     @Bean
-    public PasswordEncoder getPasswordEncoder() {
-        return NoOpPasswordEncoder.getInstance();
+    public AuthenticationManager authenticationManager(){
+        DaoAuthenticationProvider daoAuthenticationProvider = new DaoAuthenticationProvider();
+        daoAuthenticationProvider.setUserDetailsService(userDetailsService);
+        daoAuthenticationProvider.setPasswordEncoder(passwordEncoder());
+        ProviderManager pm = new ProviderManager(daoAuthenticationProvider);
+        return pm;
     }
 
     @Bean
@@ -86,5 +69,10 @@ public class SecurityConfig {
 
                 );
         return http.build();
+    }
+
+    @Bean
+    public PasswordEncoder passwordEncoder(){
+        return NoOpPasswordEncoder.getInstance();
     }
 }

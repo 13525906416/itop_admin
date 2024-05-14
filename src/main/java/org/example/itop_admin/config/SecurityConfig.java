@@ -1,5 +1,6 @@
 package org.example.itop_admin.config;
 
+import org.example.itop_admin.config.filter.JwtReqFilter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -26,6 +27,7 @@ import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.provisioning.JdbcUserDetailsManager;
 import org.springframework.security.provisioning.UserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 import javax.sql.DataSource;
 
@@ -42,8 +44,11 @@ public class SecurityConfig {
     @Autowired
     private MyUserDetailsService userDetailsService;
 
+    @Autowired
+    private JwtReqFilter jwtReqFilter;
+
     @Bean
-    public AuthenticationManager authenticationManager(){
+    public AuthenticationManager authenticationManager() {
         DaoAuthenticationProvider daoAuthenticationProvider = new DaoAuthenticationProvider();
         daoAuthenticationProvider.setUserDetailsService(userDetailsService);
         daoAuthenticationProvider.setPasswordEncoder(passwordEncoder());
@@ -53,26 +58,27 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+
         http
                 .authorizeHttpRequests((authorize) -> authorize
-                                .requestMatchers("/admin")
-//                        .hasAnyRole("USER","ADMIN")
-                                .hasRole("ADMIN")
-                                .requestMatchers("user")
-                                .hasAnyRole("USER", "ADMIN")
-                                .requestMatchers("/")
-                                .permitAll()
+                        .requestMatchers("/authenticate")
+                        .permitAll()
+                        .anyRequest().authenticated()
                 )
-                .formLogin(formLogin -> formLogin
-//                        .loginPage("/login")
-                                .permitAll()
-
-                );
+//                .formLogin(formLogin -> formLogin
+////                        .loginPage("/login")
+//                                .permitAll()
+//                )
+                .csrf(csrf -> csrf.disable())
+                .sessionManagement( session -> session
+                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .addFilterBefore(jwtReqFilter, UsernamePasswordAuthenticationFilter.class)
+        ;
         return http.build();
     }
 
     @Bean
-    public PasswordEncoder passwordEncoder(){
+    public PasswordEncoder passwordEncoder() {
         return NoOpPasswordEncoder.getInstance();
     }
 }

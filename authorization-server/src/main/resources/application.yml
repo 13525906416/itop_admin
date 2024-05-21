@@ -44,3 +44,4 @@ spring:
         show_sql: true
         hbm2ddl:
           auto: update
+        format_sql: true

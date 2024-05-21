@@ -68,9 +68,21 @@ public class SecurityConfig {
 
     @Bean
     @Order(1)
-    public SecurityFilterChain authSecurityFilterChain(HttpSecurity http) throws Exception {
+    public SecurityFilterChain authSecurityFilterChain(HttpSecurity http, AuthorizationServerSettings authorizationServerSettings) throws Exception {
         OAuth2AuthorizationServerConfiguration.applyDefaultSecurity(http);
+
+        DeviceClientAuthenticationProvider deviceClientAuthenticationProvider =
+                new DeviceClientAuthenticationProvider(clientService);
+        DeviceClientAuthenticationConverter deviceClientAuthenticationConverter =
+                new DeviceClientAuthenticationConverter(
+                        authorizationServerSettings.getDeviceAuthorizationEndpoint());
+
         http.getConfigurer(OAuth2AuthorizationServerConfigurer.class)
+                .clientAuthentication(clentAuthentication ->
+                        clentAuthentication
+                                .authenticationConverter(deviceClientAuthenticationConverter)
+                                .authenticationProvider(deviceClientAuthenticationProvider)
+                )
                 .oidc(Customizer.withDefaults());
         http.exceptionHandling((exceptions) -> exceptions
                         .defaultAuthenticationEntryPointFor(
@@ -87,42 +99,14 @@ public class SecurityConfig {
     @Bean
     @Order(2)
     public SecurityFilterChain webSecurityFilterChain(HttpSecurity http) throws Exception {
-        http.authorizeHttpRequests(auth -> auth.requestMatchers("/auth/**","/client/**").permitAll()
+        http.authorizeHttpRequests(auth -> auth.requestMatchers("/auth/**", "/client/**").permitAll()
                 .anyRequest().authenticated());
 //        .formLogin(Customizer.withDefaults());
         http.formLogin(Customizer.withDefaults());
-        http.csrf(csrf -> csrf.ignoringRequestMatchers("/auth/**","/client/**"));
+        http.csrf(csrf -> csrf.ignoringRequestMatchers("/auth/**", "/client/**"));
 //        http.cors().configurationSource(configurationSource());
         return http.build();
     }
-
-//    @Bean
-//    public CorsConfigurationSource configurationSource(){
-//        CorsConfiguration corsConfiguration = new CorsConfiguration();
-//        corsConfiguration.setAllowedHeaders(Collections.singletonList("*"));
-//        corsConfiguration.setAllowedOrigins(Collections.singletonList("*"));
-//        corsConfiguration.setAllowedMethods(Collections.singletonList("*"));
-//        corsConfiguration.setMaxAge(3600L);
-//        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-//        source.registerCorsConfiguration("/**", corsConfiguration);
-//        return source;
-//    }
-
-//    @Bean
-//    public UserDetailsService userDetailsService(){
-////        UserDetails userDetails = User.withDefaultPasswordEncoder()
-////                .username("user")
-////                .password("password")
-////                .roles("USER")
-////                .build();
-//        UserDetails userDetails =User.withUsername("user")
-//                .password("{noop}user")
-//                .authorities("ROLE_USER")
-//                .roles("USER")
-//                .build();
-//
-//        return new InMemoryUserDetailsManager(userDetails);
-//    }
 
 //    @Bean
 //    public RegisteredClientRepository registeredClientRepository() {
@@ -140,13 +124,14 @@ public class SecurityConfig {
 //                .clientSettings(clientSettings())
 //                .build();
 //        return new InMemoryRegisteredClientRepository(oidcClient);
+
+
 //    }
 
 //    @Bean
 //    public ClientSettings clientSettings() {
 //        return ClientSettings.builder().requireAuthorizationConsent(true).build();
 //    }
-    //自定义client
 
 
     @Bean
@@ -160,11 +145,10 @@ public class SecurityConfig {
             if (context.getTokenType().getValue().equals("access_token")) {
                 context.getClaims().claim("token_type", "access_token");
                 Set<String> roles = principal.getAuthorities().stream().map(GrantedAuthority::getAuthority).collect(Collectors.toSet());
-                context.getClaims().claim("roles",roles).claim("username",principal.getName());
+                context.getClaims().claim("roles", roles).claim("username", principal.getName());
             }
         };
     }
-
 
 
     @Bean

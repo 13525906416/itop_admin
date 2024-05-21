@@ -43,7 +43,15 @@ public class ClientServiceImpl implements RegisteredClientRepository {
         clientMapper.save(client);
         return new MessageDTO("client " + client.getClientId() + " saved!");
     }
+    public MessageDTO delete(String clientId){
+        clientMapper.deleteByClientId(clientId);
+        return new MessageDTO(clientId + " deleted!");
+    }
 
+    public MessageDTO cat(String clientId) {
+        Client client = clientMapper.findByClientId(clientId).orElseThrow(() -> new RuntimeException("client not fount"));
+        return new MessageDTO(client.toString());
+    }
 
     @Override
     public void save(RegisteredClient registeredClient) {
@@ -53,14 +61,12 @@ public class ClientServiceImpl implements RegisteredClientRepository {
     @Override
     public RegisteredClient findById(String id) {
         Client client = clientMapper.findByClientId(id).orElseThrow(() -> new RuntimeException("client not fount"));
-
         return Client.toRegisteredClient(client);
     }
 
     @Override
     public RegisteredClient findByClientId(String clientId) {
         Client client = clientMapper.findByClientId(clientId).orElseThrow(() -> new RuntimeException("client not fount"));
-
         return Client.toRegisteredClient(client);
     }
 

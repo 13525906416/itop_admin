@@ -110,10 +110,11 @@ public class AuthorizationConfig {
                 .formLogin(formLogin ->
                         formLogin.loginPage("/login")
                 );
+        http.csrf(csrf -> csrf.ignoringRequestMatchers("/auth/**","/client/**","/webjars/**","/assets/**"));
         // 添加BearerTokenAuthenticationFilter，将认证服务当做一个资源服务，解析请求头中的token
         http.oauth2ResourceServer((resourceServer) -> resourceServer
                 .jwt(Customizer.withDefaults()));
-
+        http.csrf(Customizer.withDefaults());
         return http.build();
     }
 
@@ -142,11 +143,9 @@ public class AuthorizationConfig {
                 .authorizationGrantType(AuthorizationGrantType.REFRESH_TOKEN)
                 .authorizationGrantType(AuthorizationGrantType.CLIENT_CREDENTIALS)
                 // 授权码模式回调地址，oauth2.1已改为精准匹配，不能只设置域名，并且屏蔽了localhost，本机使用127.0.0.1访问
-//                .redirectUri("http://127.0.0.1:8731/login/oauth2/code/messaging-client-oidc")
+                .redirectUri("http://127.0.0.1:8731/login/oauth2/code/messaging-client-oidc")
                 .redirectUri("https://oauthdebugger.com/debug")
 
-//                .redirectUri("http://127.0.0.1:8731/login/oauth2/code/messaging-client-oidc")
-//                .redirectUri("https://www.baidu.com")
 
                 // 该客户端的授权范围，OPENID与PROFILE是IdToken的scope，获取授权时请求OPENID的scope时认证服务会返回IdToken
                 .scope(OidcScopes.OPENID)

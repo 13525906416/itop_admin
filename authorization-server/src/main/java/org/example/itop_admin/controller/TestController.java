@@ -2,6 +2,7 @@ package org.example.itop_admin.controller;
 
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 /**
  * @ClassName TestController
@@ -9,6 +10,7 @@ import org.springframework.web.bind.annotation.GetMapping;
  * @Date 2024-05-23
  * @Version 1.0
  */
+@RestController
 public class TestController {
     @GetMapping("/test01")
     @PreAuthorize("hasAuthority('SCOPE_message.read')")

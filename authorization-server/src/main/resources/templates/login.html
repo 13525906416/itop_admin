@@ -72,7 +72,7 @@
             redirect: 'follow'
         };
 
-        fetch(`${window.location.origin}/captcha/getCaptcha`, requestOptions)
+        fetch(`${window.location.origin}/getCaptcha`, requestOptions)
             .then(response => response.text())
             .then(r => {
                 if (r) {

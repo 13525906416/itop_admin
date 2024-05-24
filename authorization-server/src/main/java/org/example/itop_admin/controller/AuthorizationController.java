@@ -17,12 +17,14 @@ import org.springframework.security.oauth2.server.authorization.OAuth2Authorizat
 import org.springframework.security.oauth2.server.authorization.OAuth2AuthorizationConsentService;
 import org.springframework.security.oauth2.server.authorization.client.RegisteredClient;
 import org.springframework.security.oauth2.server.authorization.client.RegisteredClientRepository;
+import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.security.web.WebAttributes;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
 
 import java.security.Principal;
 import java.util.*;
@@ -149,6 +151,17 @@ public class AuthorizationController {
             this.scope = scope;
             this.description = scopeDescriptions.getOrDefault(scope, DEFAULT_DESCRIPTION);
         }
+    }
+
+
+
+    @ResponseBody
+    @GetMapping("/user")
+    public Map<String,Object> user(Principal principal) {
+        if (!(principal instanceof JwtAuthenticationToken token)) {
+            return Collections.emptyMap();
+        }
+        return token.getToken().getClaims();
     }
 
 }

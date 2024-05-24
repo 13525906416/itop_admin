@@ -18,7 +18,8 @@ import java.util.Map;
  * @Version 1.0
  */
 @RestController
-@RequestMapping("/captcha")
+//@RequestMapping("/captcha")
+@RequestMapping("/")
 public class CaptchaController {
     @GetMapping("/getCaptcha")
     public Map<String,Object> getCaptcha(HttpSession session) {

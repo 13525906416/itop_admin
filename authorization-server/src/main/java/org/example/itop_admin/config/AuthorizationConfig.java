@@ -147,14 +147,14 @@ public class AuthorizationConfig {
     public SecurityFilterChain defaultSecurityFilterChain(HttpSecurity http) throws Exception {
         http.authorizeHttpRequests((authorize) -> authorize
                         // 放行静态资源
-                        .requestMatchers("/assets/**", "/webjars/**", "/login", "/error", "/captcha/getCaptcha").permitAll()
+                        .requestMatchers("/assets/**", "/webjars/**", "/login", "/error", "/getCaptcha").permitAll()
                         .anyRequest().authenticated()
                 )
                 // 指定登录页面
                 .formLogin(formLogin ->
                         formLogin.loginPage("/login")
                 );
-        http.csrf(csrf -> csrf.ignoringRequestMatchers("/auth/**", "/client/**", "/webjars/**", "/assets/**", "/captcha/getCaptcha"));
+        http.csrf(csrf -> csrf.ignoringRequestMatchers("/auth/**", "/client/**", "/webjars/**", "/assets/**"));
         // 添加BearerTokenAuthenticationFilter，将认证服务当做一个资源服务，解析请求头中的token
         http.oauth2ResourceServer((resourceServer) -> resourceServer
                 .jwt(Customizer.withDefaults()));
@@ -186,10 +186,9 @@ public class AuthorizationConfig {
                 .authorizationGrantType(AuthorizationGrantType.AUTHORIZATION_CODE)
                 .authorizationGrantType(AuthorizationGrantType.REFRESH_TOKEN)
                 .authorizationGrantType(AuthorizationGrantType.CLIENT_CREDENTIALS)
-                // 授权码模式回调地址，oauth2.1已改为精准匹配，不能只设置域名，并且屏蔽了localhost，本机使用127.0.0.1访问
+                // 授权码模式回调地址，oauth2.1已改为精准匹配，不能只设置域名，并且屏蔽了localhost，本机使用localhost访问
                 .redirectUri("http://127.0.0.1:8731/login/oauth2/code/messaging-client-oidc")
                 .redirectUri("https://oauthdebugger.com/debug")
-                .redirectUri("https://www.baidu.com")
 
 
                 // 该客户端的授权范围，OPENID与PROFILE是IdToken的scope，获取授权时请求OPENID的scope时认证服务会返回IdToken
@@ -235,7 +234,7 @@ public class AuthorizationConfig {
                 // 设备码授权
                 .authorizationGrantType(AuthorizationGrantType.AUTHORIZATION_CODE)
                 .authorizationGrantType(AuthorizationGrantType.REFRESH_TOKEN)
-                // 授权码模式回调地址，oauth2.1已改为精准匹配，不能只设置域名，并且屏蔽了localhost，本机使用127.0.0.1访问
+                // 授权码模式回调地址，oauth2.1已改为精准匹配，不能只设置域名，并且屏蔽了localhost，本机使用localhost访问
                 .redirectUri("http://127.0.0.1:8731/login/oauth2/code/messaging-client-oidc")
                 .redirectUri("https://oauthdebugger.com/debug")
                 .clientSettings(ClientSettings.builder().requireProofKey(Boolean.TRUE).build())
@@ -332,7 +331,7 @@ public class AuthorizationConfig {
     @Bean
     public AuthorizationServerSettings authorizationServerSettings() {
 //        return AuthorizationServerSettings.builder().build();
-        return AuthorizationServerSettings.builder().issuer("http://localhost:8731").build();
+        return AuthorizationServerSettings.builder().issuer("http://192.168.8.92:8731").build();
     }
 
     /**

@@ -29,4 +29,10 @@ public class TestController {
     public String app() {
         return "app";
     }
+
+    @GetMapping("/admin")
+    @PreAuthorize("hasRole('ROLE_admin')")
+    public String admin() {
+        return "hello admin";
+    }
 }

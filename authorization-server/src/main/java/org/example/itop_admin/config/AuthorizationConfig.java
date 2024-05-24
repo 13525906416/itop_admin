@@ -8,6 +8,8 @@ import com.nimbusds.jose.proc.SecurityContext;
 import lombok.extern.slf4j.Slf4j;
 import org.example.itop_admin.authentication.DeviceClientAuthenticationConverter;
 import org.example.itop_admin.authentication.DeviceClientAuthenticationProvider;
+import org.example.itop_admin.filter.CaptchaAuthenticationFilter;
+import org.example.itop_admin.utils.SecurityUtils;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
@@ -47,6 +49,7 @@ import org.springframework.security.oauth2.server.resource.authentication.JwtGra
 import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.LoginUrlAuthenticationEntryPoint;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.util.matcher.MediaTypeRequestMatcher;
 
 import java.security.KeyPair;
@@ -123,7 +126,11 @@ public class AuthorizationConfig {
                 )
                 // 处理使用access token访问用户信息端点和客户端注册端点
                 .oauth2ResourceServer((resourceServer) -> resourceServer
-                        .jwt(Customizer.withDefaults()));
+                        .jwt(Customizer.withDefaults())
+                        .accessDeniedHandler(SecurityUtils::exceptionHandler)
+                        .authenticationEntryPoint(SecurityUtils::exceptionHandler));
+        // 在UsernamePasswordAuthenticationFilter拦截器之前添加验证码校验拦截器，并拦截POST的登录接口
+        http.addFilterBefore(new CaptchaAuthenticationFilter("/login"), UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
@@ -140,14 +147,14 @@ public class AuthorizationConfig {
     public SecurityFilterChain defaultSecurityFilterChain(HttpSecurity http) throws Exception {
         http.authorizeHttpRequests((authorize) -> authorize
                         // 放行静态资源
-                        .requestMatchers("/assets/**", "/webjars/**", "/login", "/error").permitAll()
+                        .requestMatchers("/assets/**", "/webjars/**", "/login", "/error", "/captcha/getCaptcha").permitAll()
                         .anyRequest().authenticated()
                 )
                 // 指定登录页面
                 .formLogin(formLogin ->
                         formLogin.loginPage("/login")
                 );
-        http.csrf(csrf -> csrf.ignoringRequestMatchers("/auth/**", "/client/**", "/webjars/**", "/assets/**"));
+        http.csrf(csrf -> csrf.ignoringRequestMatchers("/auth/**", "/client/**", "/webjars/**", "/assets/**", "/captcha/getCaptcha"));
         // 添加BearerTokenAuthenticationFilter，将认证服务当做一个资源服务，解析请求头中的token
         http.oauth2ResourceServer((resourceServer) -> resourceServer
                 .jwt(Customizer.withDefaults()));
@@ -380,6 +387,7 @@ public class AuthorizationConfig {
             }
         };
     }
+
     /**
      * 自定义jwt解析器，设置解析出来的权限信息的前缀与在jwt中的key
      *
@@ -397,7 +405,6 @@ public class AuthorizationConfig {
         jwtAuthenticationConverter.setJwtGrantedAuthoritiesConverter(grantedAuthoritiesConverter);
         return jwtAuthenticationConverter;
     }
-
 
 
 }

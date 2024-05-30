@@ -1,0 +1,9 @@
+server:
+  port: 8733
+
+spring:
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: http://192.168.8.92:8731

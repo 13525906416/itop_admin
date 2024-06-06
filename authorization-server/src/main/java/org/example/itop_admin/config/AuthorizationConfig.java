@@ -5,16 +5,17 @@ import com.nimbusds.jose.jwk.RSAKey;
 import com.nimbusds.jose.jwk.source.ImmutableJWKSet;
 import com.nimbusds.jose.jwk.source.JWKSource;
 import com.nimbusds.jose.proc.SecurityContext;
-import lombok.extern.slf4j.Slf4j;
-import org.example.itop_admin.authentication.DeviceClientAuthenticationConverter;
-import org.example.itop_admin.authentication.DeviceClientAuthenticationProvider;
-import org.example.itop_admin.filter.CaptchaAuthenticationFilter;
-import org.example.itop_admin.utils.SecurityUtils;
+import org.example.itop_admin.authentication.converter.DeviceClientAuthenticationConverter;
+import org.example.itop_admin.authentication.provider.DeviceClientAuthenticationProvider;
+import org.example.itop_admin.constant.SecurityConstants;
+import org.example.itop_admin.authentication.converter.SmsCaptchaGrantAuthenticationConverter;
+import org.example.itop_admin.authentication.provider.SmsCaptchaGrantAuthenticationProvider;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
 import org.springframework.http.MediaType;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -34,7 +35,6 @@ import org.springframework.security.oauth2.server.authorization.JdbcOAuth2Author
 import org.springframework.security.oauth2.server.authorization.JdbcOAuth2AuthorizationService;
 import org.springframework.security.oauth2.server.authorization.OAuth2AuthorizationConsentService;
 import org.springframework.security.oauth2.server.authorization.OAuth2AuthorizationService;
-import org.springframework.security.oauth2.server.authorization.client.InMemoryRegisteredClientRepository;
 import org.springframework.security.oauth2.server.authorization.client.JdbcRegisteredClientRepository;
 import org.springframework.security.oauth2.server.authorization.client.RegisteredClient;
 import org.springframework.security.oauth2.server.authorization.client.RegisteredClientRepository;
@@ -44,17 +44,17 @@ import org.springframework.security.oauth2.server.authorization.settings.Authori
 import org.springframework.security.oauth2.server.authorization.settings.ClientSettings;
 import org.springframework.security.oauth2.server.authorization.token.JwtEncodingContext;
 import org.springframework.security.oauth2.server.authorization.token.OAuth2TokenCustomizer;
+import org.springframework.security.oauth2.server.authorization.token.OAuth2TokenGenerator;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
 import org.springframework.security.oauth2.server.resource.authentication.JwtGrantedAuthoritiesConverter;
 import org.springframework.security.provisioning.InMemoryUserDetailsManager;
+import org.springframework.security.web.DefaultSecurityFilterChain;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.LoginUrlAuthenticationEntryPoint;
-import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.util.matcher.MediaTypeRequestMatcher;
 
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
-import java.security.PublicKey;
 import java.security.interfaces.RSAPrivateKey;
 import java.security.interfaces.RSAPublicKey;
 import java.util.*;
@@ -82,6 +82,58 @@ public class AuthorizationConfig {
      */
     @Bean
     @Order(1)
+//    public SecurityFilterChain authorizationServerSecurityFilterChain(HttpSecurity http,
+//                                                                      RegisteredClientRepository registeredClientRepository,
+//                                                                      AuthorizationServerSettings authorizationServerSettings) throws Exception {
+//        // 配置默认的设置，忽略认证端点的csrf校验
+//        OAuth2AuthorizationServerConfiguration.applyDefaultSecurity(http);
+//
+//        // 新建设备码converter和provider
+//        DeviceClientAuthenticationConverter deviceClientAuthenticationConverter =
+//                new DeviceClientAuthenticationConverter(
+//                        authorizationServerSettings.getDeviceAuthorizationEndpoint());
+//        DeviceClientAuthenticationProvider deviceClientAuthenticationProvider =
+//                new DeviceClientAuthenticationProvider(registeredClientRepository);
+//
+//
+//        http.getConfigurer(OAuth2AuthorizationServerConfigurer.class)
+//                // 开启OpenID Connect 1.0协议相关端点
+//                .oidc(Customizer.withDefaults())
+//                // 设置自定义用户确认授权页
+//                .authorizationEndpoint(authorizationEndpoint ->
+//                        authorizationEndpoint.consentPage(CUSTOM_CONSENT_PAGE_URI))
+//                // 设置设备码用户验证url(自定义用户验证页)
+//                .deviceAuthorizationEndpoint(deviceAuthorizationEndpoint ->
+//                        deviceAuthorizationEndpoint.verificationUri("/activate")
+//                )
+//                // 设置验证设备码用户确认页面
+//                .deviceVerificationEndpoint(deviceVerificationEndpoint ->
+//                        deviceVerificationEndpoint.consentPage(CUSTOM_CONSENT_PAGE_URI)
+//                )
+//                .clientAuthentication(clientAuthentication ->
+//                        // 客户端认证添加设备码的converter和provider
+//                        clientAuthentication
+//                                .authenticationConverter(deviceClientAuthenticationConverter)
+//                                .authenticationProvider(deviceClientAuthenticationProvider)
+//                );
+//        http
+//                // 当未登录时访问认证端点时重定向至login页面
+//                .exceptionHandling((exceptions) -> exceptions
+//                        .defaultAuthenticationEntryPointFor(
+//                                new LoginUrlAuthenticationEntryPoint("/login"),
+//                                new MediaTypeRequestMatcher(MediaType.TEXT_HTML)
+//                        )
+//                )
+//                // 处理使用access token访问用户信息端点和客户端注册端点
+//                .oauth2ResourceServer((resourceServer) -> resourceServer
+//                        .jwt(Customizer.withDefaults())
+//                        .accessDeniedHandler(SecurityUtils::exceptionHandler)
+//                        .authenticationEntryPoint(SecurityUtils::exceptionHandler));
+//        // 在UsernamePasswordAuthenticationFilter拦截器之前添加验证码校验拦截器，并拦截POST的登录接口
+//        http.addFilterBefore(new CaptchaAuthenticationFilter("/login"), UsernamePasswordAuthenticationFilter.class);
+//
+//        return http.build();
+//    }
     public SecurityFilterChain authorizationServerSecurityFilterChain(HttpSecurity http,
                                                                       RegisteredClientRepository registeredClientRepository,
                                                                       AuthorizationServerSettings authorizationServerSettings) throws Exception {
@@ -100,8 +152,7 @@ public class AuthorizationConfig {
                 // 开启OpenID Connect 1.0协议相关端点
                 .oidc(Customizer.withDefaults())
                 // 设置自定义用户确认授权页
-                .authorizationEndpoint(authorizationEndpoint ->
-                        authorizationEndpoint.consentPage(CUSTOM_CONSENT_PAGE_URI))
+                .authorizationEndpoint(authorizationEndpoint -> authorizationEndpoint.consentPage(CUSTOM_CONSENT_PAGE_URI))
                 // 设置设备码用户验证url(自定义用户验证页)
                 .deviceAuthorizationEndpoint(deviceAuthorizationEndpoint ->
                         deviceAuthorizationEndpoint.verificationUri("/activate")
@@ -126,15 +177,36 @@ public class AuthorizationConfig {
                 )
                 // 处理使用access token访问用户信息端点和客户端注册端点
                 .oauth2ResourceServer((resourceServer) -> resourceServer
-                        .jwt(Customizer.withDefaults())
-                        .accessDeniedHandler(SecurityUtils::exceptionHandler)
-                        .authenticationEntryPoint(SecurityUtils::exceptionHandler));
-        // 在UsernamePasswordAuthenticationFilter拦截器之前添加验证码校验拦截器，并拦截POST的登录接口
-        http.addFilterBefore(new CaptchaAuthenticationFilter("/login"), UsernamePasswordAuthenticationFilter.class);
+                        .jwt(Customizer.withDefaults()));
 
-        return http.build();
+        // 自定义短信认证登录转换器
+        SmsCaptchaGrantAuthenticationConverter converter = new SmsCaptchaGrantAuthenticationConverter();
+        // 自定义短信认证登录认证提供
+        SmsCaptchaGrantAuthenticationProvider provider = new SmsCaptchaGrantAuthenticationProvider();
+        http.getConfigurer(OAuth2AuthorizationServerConfigurer.class)
+                // 让认证服务器元数据中有自定义的认证方式
+                .authorizationServerMetadataEndpoint(metadata -> metadata.authorizationServerMetadataCustomizer(customizer -> customizer.grantType(SecurityConstants.GRANT_TYPE_SMS_CODE)))
+                // 添加自定义grant_type——短信认证登录
+                .tokenEndpoint(tokenEndpoint -> tokenEndpoint
+                        .accessTokenRequestConverter(converter)
+                        .authenticationProvider(provider));
+
+        DefaultSecurityFilterChain build = http.build();
+
+        // 从框架中获取provider中所需的bean
+        OAuth2TokenGenerator<?> tokenGenerator = http.getSharedObject(OAuth2TokenGenerator.class);
+        AuthenticationManager authenticationManager = http.getSharedObject(AuthenticationManager.class);
+        OAuth2AuthorizationService authorizationService = http.getSharedObject(OAuth2AuthorizationService.class);
+        // 以上三个bean在build()方法之后调用是因为调用build方法时框架会尝试获取这些类，
+        // 如果获取不到则初始化一个实例放入SharedObject中，所以要在build方法调用之后获取
+        // 在通过set方法设置进provider中，但是如果在build方法之后调用authenticationProvider(provider)
+        // 框架会提示unsupported_grant_type，因为已经初始化完了，在添加就不会生效了
+        provider.setTokenGenerator(tokenGenerator);
+        provider.setAuthorizationService(authorizationService);
+        provider.setAuthenticationManager(authenticationManager);
+
+        return build;
     }
-
     /**
      * 配置认证相关的过滤器链
      *
@@ -147,7 +219,7 @@ public class AuthorizationConfig {
     public SecurityFilterChain defaultSecurityFilterChain(HttpSecurity http) throws Exception {
         http.authorizeHttpRequests((authorize) -> authorize
                         // 放行静态资源
-                        .requestMatchers("/assets/**", "/webjars/**", "/login", "/error", "/getCaptcha").permitAll()
+                        .requestMatchers("/assets/**", "/webjars/**", "/login", "/error", "/getCaptcha","/getSmsCaptcha").permitAll()
                         .anyRequest().authenticated()
                 )
                 // 指定登录页面

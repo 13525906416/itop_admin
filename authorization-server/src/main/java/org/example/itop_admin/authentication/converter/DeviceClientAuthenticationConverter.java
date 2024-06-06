@@ -1,6 +1,7 @@
-package org.example.itop_admin.authentication;
+package org.example.itop_admin.authentication.converter;
 
 import jakarta.servlet.http.HttpServletRequest;
+import org.example.itop_admin.authentication.DeviceClientAuthenticationToken;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.core.AuthorizationGrantType;

@@ -56,7 +56,7 @@
         </dependency>
         <dependency>
             <groupId>com.baomidou</groupId>
-            <artifactId>mybatis-plus-boot-starter</artifactId>
+            <artifactId>mybatis-plus-spring-boot3-starter</artifactId>
         </dependency>
 
 
@@ -88,6 +88,16 @@
             <artifactId>hutool-captcha</artifactId>
         </dependency>
 
+        <dependency>
+            <groupId>com.baomidou</groupId>
+            <artifactId>mybatis-plus-generator</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.velocity</groupId>
+            <artifactId>velocity-engine-core</artifactId>
+        </dependency>
+
+
     </dependencies>
 
     <build>
@@ -106,24 +116,24 @@
             </plugin>
         </plugins>
 
-<!--        <resources>-->
-<!--            <resource>-->
-<!--                <directory>src/main/resources</directory>-->
-<!--                &lt;!&ndash; 关闭过滤 &ndash;&gt;-->
-<!--                <filtering>false</filtering>-->
-<!--            </resource>-->
-<!--            <resource>-->
-<!--                <directory>src/main/resources</directory>-->
-<!--                &lt;!&ndash; 引入所有 匹配文件进行过滤 &ndash;&gt;-->
-<!--                <includes>-->
-<!--                    <include>application*</include>-->
-<!--                    <include>bootstrap*</include>-->
-<!--                    <include>banner*</include>-->
-<!--                </includes>-->
-<!--                &lt;!&ndash; 启用过滤 即该资源中的变量将会被过滤器中的值替换 &ndash;&gt;-->
-<!--                <filtering>true</filtering>-->
-<!--            </resource>-->
-<!--        </resources>-->
+        <!--        <resources>-->
+        <!--            <resource>-->
+        <!--                <directory>src/main/resources</directory>-->
+        <!--                &lt;!&ndash; 关闭过滤 &ndash;&gt;-->
+        <!--                <filtering>false</filtering>-->
+        <!--            </resource>-->
+        <!--            <resource>-->
+        <!--                <directory>src/main/resources</directory>-->
+        <!--                &lt;!&ndash; 引入所有 匹配文件进行过滤 &ndash;&gt;-->
+        <!--                <includes>-->
+        <!--                    <include>application*</include>-->
+        <!--                    <include>bootstrap*</include>-->
+        <!--                    <include>banner*</include>-->
+        <!--                </includes>-->
+        <!--                &lt;!&ndash; 启用过滤 即该资源中的变量将会被过滤器中的值替换 &ndash;&gt;-->
+        <!--                <filtering>true</filtering>-->
+        <!--            </resource>-->
+        <!--        </resources>-->
     </build>
 
 

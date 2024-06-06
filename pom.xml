@@ -22,6 +22,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <springboot.version>3.2.0</springboot.version>
         <mybatis-plus.version>3.5.4</mybatis-plus.version>
+        <mybatis-plus3.version>3.5.6</mybatis-plus3.version>
         <mybatis-plus-generator.version>3.5.3.1</mybatis-plus-generator.version>
         <velocity.version>2.3</velocity.version>
         <bootstrap.version>5.2.3</bootstrap.version>
@@ -39,10 +40,16 @@
                 <type>pom</type>
             </dependency>
 
+<!--            <dependency>-->
+<!--                <groupId>com.baomidou</groupId>-->
+<!--                <artifactId>mybatis-plus-boot-starter</artifactId>-->
+<!--                <version>${mybatis-plus.version}</version>-->
+<!--            </dependency>-->
+
             <dependency>
                 <groupId>com.baomidou</groupId>
-                <artifactId>mybatis-plus-boot-starter</artifactId>
-                <version>${mybatis-plus.version}</version>
+                <artifactId>mybatis-plus-spring-boot3-starter</artifactId>
+                <version>${mybatis-plus3.version}</version>
             </dependency>
 
             <dependency>

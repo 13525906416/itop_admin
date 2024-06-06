@@ -8,6 +8,12 @@ spring:
     password: root
 
 
+# Mybatis-Plus 配置
+mybatis-plus:
+  # 扫描mapper文件
+  mapper-locations:
+    - classpath:org/example/itop_admin/mapper/**/*Mapper.xml
+
 
 logging:
   level:

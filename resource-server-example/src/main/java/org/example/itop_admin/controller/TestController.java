@@ -18,6 +18,12 @@ public class TestController {
         return "test01";
     }
 
+    @GetMapping("/test001")
+    @PreAuthorize("hasAuthority('message.read')")
+    public String test001() {
+        return "test01";
+    }
+
     @GetMapping("/test02")
     @PreAuthorize("hasAuthority('SCOPE_message.write')")
     public String test02() {

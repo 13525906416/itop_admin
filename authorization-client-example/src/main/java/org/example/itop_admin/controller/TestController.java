@@ -28,6 +28,12 @@ public class TestController {
         return "test02";
     }
 
+    @GetMapping("/test001")
+    @PreAuthorize("hasAuthority('message.read')")
+    public String test001() {
+        return "test01";
+    }
+
     @GetMapping("/app")
     @PreAuthorize("hasAuthority('app')")
     public String app() {
